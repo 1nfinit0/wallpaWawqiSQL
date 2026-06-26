@@ -7,10 +7,10 @@ import java.sql.SQLException;
 public class DatabaseConnection {
 
     private static final String URL =
-            "jdbc:postgresql://dpg-d7n18ul7vvec738s3u30-a.oregon-postgres.render.com/BaseDePatos?sslmode=require";
+            "jdbc:postgresql://grupo:oaC3bS6azsPbbamuipjp5VT7SgwgW8ey@dpg-d8ui66og4nts73fscqhg-a.oregon-postgres.render.com/basedepatos?sslmode=require";
 
-    private static final String USER = "tobi";
-    private static final String PASSWORD = "kmwfcC6CLYOEhi2m8F3Vu8Y3cXU4Auxo";
+    private static final String USER = "grupo";
+    private static final String PASSWORD = "oaC3bS6azsPbbamuipjp5VT7SgwgW8ey";
 
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(
