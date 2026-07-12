@@ -66,6 +66,33 @@ public class WallpaWawqi {
 
                                         exchange.getResponseHeaders().add("Content-Type", "application/json");
                                         exchange.getResponseBody().write(response.getBytes());
+                                } else if ("POST".equals(exchange.getRequestMethod())) {
+                                        try {
+                                                String requestBody = new String(
+                                                                exchange.getRequestBody().readAllBytes());
+                                                Producto nuevoProducto = gson.fromJson(requestBody, Producto.class);
+
+                                                ProductoDAO dao = new ProductoDAO();
+                                                long idGenerado = dao.crear(nuevoProducto);
+
+                                                String response;
+                                                if (idGenerado > 0) {
+                                                        response = "{\"message\": \"Producto creado\", \"id\": "
+                                                                        + idGenerado + "}";
+                                                        exchange.sendResponseHeaders(201, response.getBytes().length);
+                                                } else {
+                                                        response = "{\"error\": \"No se pudo crear el producto\"}";
+                                                        exchange.sendResponseHeaders(500, response.getBytes().length);
+                                                }
+
+                                                exchange.getResponseHeaders().add("Content-Type", "application/json");
+                                                exchange.getResponseBody().write(response.getBytes());
+                                        } catch (Exception e) {
+                                                e.printStackTrace();
+                                                String error = "{\"error\": \"" + e.getMessage() + "\"}";
+                                                exchange.sendResponseHeaders(400, error.getBytes().length);
+                                                exchange.getResponseBody().write(error.getBytes());
+                                        }
                                 }
                         } catch (Exception e) {
                                 e.printStackTrace();
