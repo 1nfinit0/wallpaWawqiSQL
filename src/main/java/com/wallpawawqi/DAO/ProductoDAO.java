@@ -55,6 +55,49 @@ public class ProductoDAO {
                 return productos;
         }
 
+        public Producto obtenerPorId(long id) {
+                String sql = """
+                                    SELECT
+                                        id_producto,
+                                        nombre_producto,
+                                        descripcion_producto,
+                                        precio_producto,
+                                        id_categoria,
+                                        url_imagen
+                                    FROM producto
+                                    WHERE id_producto = ?
+                                """;
+
+                try (
+                                Connection conn = DatabaseConnection.getConnection();
+                                PreparedStatement stmt = conn.prepareStatement(sql)) {
+                        stmt.setLong(1, id);
+
+                        try (ResultSet rs = stmt.executeQuery()) {
+                                if (rs.next()) {
+                                        Producto p = new Producto();
+                                        p.setId(rs.getLong("id_producto"));
+                                        p.setName(rs.getString("nombre_producto"));
+                                        p.setDescription(rs.getString("descripcion_producto"));
+                                        p.setPrice(rs.getDouble("precio_producto"));
+
+                                        int categoryId = rs.getInt("id_categoria");
+                                        if (!rs.wasNull()) {
+                                                p.setCategoryId(categoryId);
+                                        }
+
+                                        p.setImg(rs.getString("url_imagen"));
+                                        return p;
+                                }
+                        }
+
+                } catch (Exception e) {
+                        e.printStackTrace();
+                }
+
+                return null;
+        }
+
         public boolean actualizar(long id, Producto producto)
 
         {

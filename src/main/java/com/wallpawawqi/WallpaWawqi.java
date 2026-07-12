@@ -29,13 +29,38 @@ public class WallpaWawqi {
                                 }
 
                                 if ("GET".equals(exchange.getRequestMethod())) {
-                                        ProductoDAO dao = new ProductoDAO();
-                                        List<Producto> productos = dao.obtenerTodos();
-                                        String json = gson.toJson(productos);
+                                        String path = exchange.getRequestURI().getPath();
+                                        String[] partes = path.split("/");
 
-                                        exchange.getResponseHeaders().add("Content-Type", "application/json");
-                                        exchange.sendResponseHeaders(200, json.getBytes().length);
-                                        exchange.getResponseBody().write(json.getBytes());
+                                        ProductoDAO dao = new ProductoDAO();
+
+                                        if (partes.length >= 3) {
+                                                // GET /productos/{id}
+                                                long id = Long.parseLong(partes[2]);
+                                                Producto producto = dao.obtenerPorId(id);
+
+                                                if (producto != null) {
+                                                        String json = gson.toJson(producto);
+                                                        exchange.getResponseHeaders().add("Content-Type",
+                                                                        "application/json");
+                                                        exchange.sendResponseHeaders(200, json.getBytes().length);
+                                                        exchange.getResponseBody().write(json.getBytes());
+                                                } else {
+                                                        String error = "{\"error\": \"Producto no encontrado\"}";
+                                                        exchange.getResponseHeaders().add("Content-Type",
+                                                                        "application/json");
+                                                        exchange.sendResponseHeaders(404, error.getBytes().length);
+                                                        exchange.getResponseBody().write(error.getBytes());
+                                                }
+                                        } else {
+                                                // GET /productos (todos)
+                                                List<Producto> productos = dao.obtenerTodos();
+                                                String json = gson.toJson(productos);
+
+                                                exchange.getResponseHeaders().add("Content-Type", "application/json");
+                                                exchange.sendResponseHeaders(200, json.getBytes().length);
+                                                exchange.getResponseBody().write(json.getBytes());
+                                        }
                                 } else if ("PUT".equals(exchange.getRequestMethod())) {
                                         String path = exchange.getRequestURI().getPath();
                                         String[] partes = path.split("/");
