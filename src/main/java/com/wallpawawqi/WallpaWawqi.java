@@ -86,20 +86,20 @@ public class WallpaWawqi {
 
                                 if (actualizado) {
                                         response = """
-                                                                        {
-                                                                                "message":
-                                                                                "Producto actualizado"
-                                                                        }
-                                                                        """;
+                                                        {
+                                                                "message":
+                                                                "Producto actualizado"
+                                                        }
+                                                        """;
 
                                         exchange.sendResponseHeaders(200, response.getBytes().length);
                                 } else {
                                         response = """
-                                                                        {
-                                                                                "error":
-                                                                                "Producto no encontrado"
-                                                                        }
-                                                                        """;
+                                                        {
+                                                                "error":
+                                                                "Producto no encontrado"
+                                                        }
+                                                        """;
 
                                         exchange.sendResponseHeaders(404, response.getBytes().length);
                                 }

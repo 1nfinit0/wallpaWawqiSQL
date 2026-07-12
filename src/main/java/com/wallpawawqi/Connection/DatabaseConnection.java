@@ -7,8 +7,8 @@ import java.sql.SQLException;
 public class DatabaseConnection {
 
     private static final String URL =
-            "jdbc:postgresql://grupo:oaC3bS6azsPbbamuipjp5VT7SgwgW8ey@dpg-d8ui66og4nts73fscqhg-a.oregon-postgres.render.com/basedepatos?sslmode=require";
-
+            "jdbc:postgresql://dpg-d8ui66og4nts73fscqhg-a.oregon-postgres.render.com:5432/basedepatos?sslmode=require";
+            
     private static final String USER = "grupo";
     private static final String PASSWORD = "oaC3bS6azsPbbamuipjp5VT7SgwgW8ey";
 
