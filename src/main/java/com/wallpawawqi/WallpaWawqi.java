@@ -96,9 +96,11 @@ public class WallpaWawqi {
                                         exchange.getResponseBody().write(response.getBytes());
                                 } else if ("POST".equals(exchange.getRequestMethod())) {
                                         try {
-                                                String contentType = exchange.getRequestHeaders().getFirst("Content-Type");
+                                                String contentType = exchange.getRequestHeaders()
+                                                                .getFirst("Content-Type");
 
-                                                if (contentType != null && contentType.startsWith("multipart/form-data")) {
+                                                if (contentType != null
+                                                                && contentType.startsWith("multipart/form-data")) {
                                                         // Manejar multipart (form-data) con imagen
                                                         handleMultipartPost(exchange, gson);
                                                         return;
@@ -125,11 +127,23 @@ public class WallpaWawqi {
                                                                 nombre,
                                                                 descripcion,
                                                                 precio,
-                                                                urlImagenCloudinary
-                                                );
+                                                                urlImagenCloudinary);
 
                                                 // ✅ DAO inserta: nombre, descripción, precio, url_imagen
                                                 ProductoDAO dao = new ProductoDAO();
+
+                                                System.out.println("Nombre: " + nombre);
+                                                System.out.println("Descripción: " + descripcion);
+                                                System.out.println("Precio: " + precio);
+                                                System.out.println("ImagenBase64 length: " + imagenBase64.length());
+
+                                                // Limpiar prefijo
+                                                if (imagenBase64.contains(",")) {
+                                                        imagenBase64 = imagenBase64.split(",")[1];
+                                                }
+
+                                                System.out.println("URL Cloudinary: " + urlImagenCloudinary);
+
                                                 long idGenerado = dao.crear(nuevoProducto);
 
                                                 String response;

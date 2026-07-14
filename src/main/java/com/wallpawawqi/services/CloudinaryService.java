@@ -16,9 +16,8 @@ public class CloudinaryService {
     }
 
     public static String uploadImageFromBase64(String base64, String publicId) throws Exception {
-        // Cloudinary puede recibir base64 directamente
-        @SuppressWarnings("unchecked")
-        Map<String, Object> uploadResult = (Map<String, Object>) cloudinary.uploader().upload(
+    try {
+        Map<?, ?> uploadResult = cloudinary.uploader().upload(
             base64,
             ObjectUtils.asMap(
                 "public_id", "productos/" + publicId.replaceAll(" ", "_"),
@@ -26,6 +25,13 @@ public class CloudinaryService {
                 "quality", "auto"
             )
         );
-        return (String) uploadResult.get("secure_url");
+        String url = (String) uploadResult.get("secure_url");
+        System.out.println("Imagen subida a: " + url);
+        return url;
+    } catch (Exception e) {
+        System.err.println("Error en Cloudinary: " + e.getMessage());
+        e.printStackTrace();
+        throw e;
     }
+}
 }
