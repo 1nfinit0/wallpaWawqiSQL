@@ -95,6 +95,18 @@ public class WallpaWawqi {
                                                 String requestBody = new String(
                                                                 exchange.getRequestBody().readAllBytes());
 
+                                                // ✅ DEBUG: Ver qué se recibe
+                                                System.out.println("Request Body: " + requestBody);
+                                                System.out.println("Request Body length: " + requestBody.length());
+
+                                                // Validar que no esté vacío
+                                                if (requestBody == null || requestBody.isEmpty()) {
+                                                        String error = "{\"error\": \"Body vacío\"}";
+                                                        exchange.sendResponseHeaders(400, error.getBytes().length);
+                                                        exchange.getResponseBody().write(error.getBytes());
+                                                        return;
+                                                }
+
                                                 com.google.gson.JsonObject json = gson.fromJson(requestBody,
                                                                 com.google.gson.JsonObject.class);
 
