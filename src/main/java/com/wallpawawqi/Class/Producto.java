@@ -11,6 +11,10 @@ public class Producto {
 
     public Producto() {}
 
+    public Producto(String nombre, String descripcion, double double1, String imageUrl) {
+      //TODO Auto-generated constructor stub
+    }
+
     public long getId() {
         return id;
     }
