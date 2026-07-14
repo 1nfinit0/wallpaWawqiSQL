@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.gson.Gson;
+import java.util.Base64;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import com.wallpawawqi.Class.Producto;
@@ -97,13 +98,52 @@ public class WallpaWawqi {
                                         try {
                                                 String contentType = exchange.getRequestHeaders().getFirst("Content-Type");
 
-                                                // ✅ NUEVO: Detectar si es multipart
                                                 if (contentType != null && contentType.startsWith("multipart/form-data")) {
+                                                        // Manejar multipart (form-data) con imagen
                                                         handleMultipartPost(exchange, gson);
-                                                } else {
-                                                        // JSON tradicional
-                                                        handleJsonPost(exchange, gson);
+                                                        return;
                                                 }
+
+                                                String requestBody = new String(
+                                                                exchange.getRequestBody().readAllBytes());
+
+                                                // Parse JSON
+                                                com.google.gson.JsonObject json = gson.fromJson(requestBody,
+                                                                com.google.gson.JsonObject.class);
+
+                                                String nombre = json.get("nombre").getAsString();
+                                                String descripcion = json.get("descripcion").getAsString();
+                                                double precio = json.get("precio").getAsDouble();
+                                                String imagenBase64 = json.get("imagenBase64").getAsString();
+
+                                                // ✅ Subir imagen a Cloudinary
+                                                String urlImagenCloudinary = CloudinaryService
+                                                                .uploadImageFromBase64(imagenBase64, nombre);
+
+                                                // ✅ Crear objeto Producto con todos los datos
+                                                Producto nuevoProducto = new Producto(
+                                                                nombre,
+                                                                descripcion,
+                                                                precio,
+                                                                urlImagenCloudinary
+                                                );
+
+                                                // ✅ DAO inserta: nombre, descripción, precio, url_imagen
+                                                ProductoDAO dao = new ProductoDAO();
+                                                long idGenerado = dao.crear(nuevoProducto);
+
+                                                String response;
+                                                if (idGenerado > 0) {
+                                                        response = "{\"message\": \"Producto creado\", \"id\": "
+                                                                        + idGenerado + "}";
+                                                        exchange.sendResponseHeaders(201, response.getBytes().length);
+                                                } else {
+                                                        response = "{\"error\": \"No se pudo crear el producto\"}";
+                                                        exchange.sendResponseHeaders(500, response.getBytes().length);
+                                                }
+
+                                                exchange.getResponseHeaders().add("Content-Type", "application/json");
+                                                exchange.getResponseBody().write(response.getBytes());
                                         } catch (Exception e) {
                                                 e.printStackTrace();
                                                 String error = "{\"error\": \"" + e.getMessage() + "\"}";
@@ -143,10 +183,11 @@ public class WallpaWawqi {
                 byte[] imagenBytes = (byte[]) fields.get("imagen");
 
                 // ✅ Subir imagen a Cloudinary
-                String imageUrl = CloudinaryService.uploadImage(
-                    imagenBytes,
-                    nombre.replaceAll(" ", "_")
-                );
+                String imagenBase64 = Base64.getEncoder().encodeToString(imagenBytes);
+
+                String imageUrl = CloudinaryService.uploadImageFromBase64(
+                                imagenBase64,
+                                nombre.replaceAll(" ", "_"));
 
                 // Crear producto
                 Producto nuevoProducto = new Producto(nombre, descripcion, Double.parseDouble(precio), imageUrl);
@@ -157,7 +198,7 @@ public class WallpaWawqi {
                 String response;
                 if (idGenerado > 0) {
                         response = "{\"message\": \"Producto creado\", \"id\": " + idGenerado
-                                + ", \"imageUrl\": \"" + imageUrl + "\"}";
+                                        + ", \"imageUrl\": \"" + imageUrl + "\"}";
                         exchange.sendResponseHeaders(201, response.getBytes().length);
                 } else {
                         response = "{\"error\": \"No se pudo crear el producto\"}";
@@ -190,7 +231,8 @@ public class WallpaWawqi {
         }
 
         // ✅ NUEVO: Parser simple de multipart
-        private static Map<String, Object> parseMultipart(String body, String boundary, byte[] bodyBytes) throws Exception {
+        private static Map<String, Object> parseMultipart(String body, String boundary, byte[] bodyBytes)
+                        throws Exception {
                 Map<String, Object> result = new java.util.HashMap<>();
 
                 String[] parts = body.split("--" + boundary);
