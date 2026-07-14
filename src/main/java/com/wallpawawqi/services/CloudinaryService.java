@@ -15,10 +15,10 @@ public class CloudinaryService {
         ));
     }
 
-    public static String uploadImageFromBase64(String base64, String publicId) throws Exception {
+    public static String uploadImageFromBytes(byte[] imageBytes, String publicId) throws Exception {
     try {
         Map<?, ?> uploadResult = cloudinary.uploader().upload(
-            base64,
+            imageBytes,
             ObjectUtils.asMap(
                 "public_id", "productos/" + publicId.replaceAll(" ", "_"),
                 "resource_type", "auto",
