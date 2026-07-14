@@ -6,7 +6,9 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import com.wallpawawqi.Class.EmpleadoSesion;
 import com.wallpawawqi.Class.Producto;
+import com.wallpawawqi.DAO.EmpleadoDAO;
 import com.wallpawawqi.DAO.ProductoDAO;
 import com.wallpawawqi.services.CloudinaryService;
 
@@ -165,6 +167,83 @@ public class WallpaWawqi {
                                 String error = "{\"error\": \"" + e.getMessage() + "\"}";
                                 exchange.sendResponseHeaders(500, error.getBytes().length);
                                 exchange.getResponseBody().write(error.getBytes());
+                        } finally {
+                                exchange.close();
+                        }
+                });
+
+                // ... dentro de main(), después del createContext("/productos", ...) y antes de
+                // server.start();
+
+                server.createContext("/login", exchange -> {
+                        try {
+                                configurarCors(exchange);
+
+                                if ("OPTIONS".equals(exchange.getRequestMethod())) {
+                                        exchange.sendResponseHeaders(204, -1);
+                                        exchange.close();
+                                        return;
+                                }
+
+                                if (!"POST".equals(exchange.getRequestMethod())) {
+                                        String error = "{\"error\": \"Método no permitido\"}";
+                                        exchange.getResponseHeaders().add("Content-Type", "application/json");
+                                        exchange.sendResponseHeaders(405, error.getBytes().length);
+                                        exchange.getResponseBody().write(error.getBytes());
+                                        exchange.close();
+                                        return;
+                                }
+
+                                String requestBody = new String(exchange.getRequestBody().readAllBytes());
+
+                                if (requestBody == null || requestBody.isEmpty()) {
+                                        String error = "{\"error\": \"Body vacío\"}";
+                                        exchange.getResponseHeaders().add("Content-Type", "application/json");
+                                        exchange.sendResponseHeaders(400, error.getBytes().length);
+                                        exchange.getResponseBody().write(error.getBytes());
+                                        exchange.close();
+                                        return;
+                                }
+
+                                com.google.gson.JsonObject json = gson.fromJson(requestBody,
+                                                com.google.gson.JsonObject.class);
+
+                                if (!json.has("nombre") || !json.has("celular")) {
+                                        String error = "{\"error\": \"nombre y celular son requeridos\"}";
+                                        exchange.getResponseHeaders().add("Content-Type", "application/json");
+                                        exchange.sendResponseHeaders(400, error.getBytes().length);
+                                        exchange.getResponseBody().write(error.getBytes());
+                                        exchange.close();
+                                        return;
+                                }
+
+                                String nombre = json.get("nombre").getAsString();
+                                String celular = json.get("celular").getAsString();
+
+                                EmpleadoDAO empleadoDAO = new EmpleadoDAO();
+                                EmpleadoSesion sesion = empleadoDAO.autenticar(nombre, celular);
+
+                                String response;
+                                if (sesion == null) {
+                                        response = "{\"error\": \"Credenciales inválidas\"}";
+                                        exchange.getResponseHeaders().add("Content-Type", "application/json");
+                                        exchange.sendResponseHeaders(401, response.getBytes().length);
+                                } else {
+                                        response = gson.toJson(sesion);
+                                        exchange.getResponseHeaders().add("Content-Type", "application/json");
+                                        exchange.sendResponseHeaders(200, response.getBytes().length);
+                                }
+
+                                exchange.getResponseBody().write(response.getBytes());
+                        } catch (Exception e) {
+                                e.printStackTrace();
+                                String error = "{\"error\": \"" + e.getMessage() + "\"}";
+                                try {
+                                        exchange.getResponseHeaders().add("Content-Type", "application/json");
+                                        exchange.sendResponseHeaders(500, error.getBytes().length);
+                                        exchange.getResponseBody().write(error.getBytes());
+                                } catch (Exception ignored) {
+                                }
                         } finally {
                                 exchange.close();
                         }
