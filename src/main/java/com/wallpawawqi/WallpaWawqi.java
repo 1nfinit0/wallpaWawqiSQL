@@ -117,9 +117,31 @@ public class WallpaWawqi {
                                                 double precio = json.get("precio").getAsDouble();
                                                 String imagenBase64 = json.get("imagenBase64").getAsString();
 
+                                                // NUEVO: leer y validar categoría
+                                                if (!json.has("categoryId") || json.get("categoryId").isJsonNull()) {
+                                                        String error = "{\"error\": \"categoryId es requerido\"}";
+                                                        exchange.getResponseHeaders().add("Content-Type",
+                                                                        "application/json");
+                                                        exchange.sendResponseHeaders(400, error.getBytes().length);
+                                                        exchange.getResponseBody().write(error.getBytes());
+                                                        return;
+                                                }
+                                                int categoryId = json.get("categoryId").getAsInt();
+
+                                                if (categoryId != 26 && categoryId != 27 && categoryId != 28
+                                                                && categoryId != 29) {
+                                                        String error = "{\"error\": \"categoryId inválido\"}";
+                                                        exchange.getResponseHeaders().add("Content-Type",
+                                                                        "application/json");
+                                                        exchange.sendResponseHeaders(400, error.getBytes().length);
+                                                        exchange.getResponseBody().write(error.getBytes());
+                                                        return;
+                                                }
+
                                                 System.out.println("Nombre: " + nombre);
                                                 System.out.println("Descripción: " + descripcion);
                                                 System.out.println("Precio: " + precio);
+                                                System.out.println("CategoryId: " + categoryId);
                                                 System.out.println("ImagenBase64 length: " + imagenBase64.length());
 
                                                 // Limpiar prefijo data:image/...;base64,
@@ -139,6 +161,7 @@ public class WallpaWawqi {
                                                 // Crear producto
                                                 Producto nuevoProducto = new Producto(nombre, descripcion, precio,
                                                                 urlImagenCloudinary);
+                                                nuevoProducto.setCategoryId(categoryId); // NUEVO
 
                                                 ProductoDAO dao = new ProductoDAO();
                                                 long idGenerado = dao.crear(nuevoProducto);
@@ -171,9 +194,6 @@ public class WallpaWawqi {
                                 exchange.close();
                         }
                 });
-
-                // ... dentro de main(), después del createContext("/productos", ...) y antes de
-                // server.start();
 
                 server.createContext("/login", exchange -> {
                         try {
