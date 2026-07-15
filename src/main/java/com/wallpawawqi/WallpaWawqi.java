@@ -184,7 +184,36 @@ public class WallpaWawqi {
                                                 exchange.sendResponseHeaders(400, error.getBytes().length);
                                                 exchange.getResponseBody().write(error.getBytes());
                                         }
+                                } else if ("DELETE".equals(exchange.getRequestMethod())) {
+                                        String path = exchange.getRequestURI().getPath();
+                                        String[] partes = path.split("/");
+
+                                        if (partes.length < 3) {
+                                                String error = "{\"error\": \"ID requerido\"}";
+                                                exchange.getResponseHeaders().add("Content-Type", "application/json");
+                                                exchange.sendResponseHeaders(400, error.getBytes().length);
+                                                exchange.getResponseBody().write(error.getBytes());
+                                                exchange.close();
+                                                return;
+                                        }
+
+                                        long id = Long.parseLong(partes[2]);
+                                        ProductoDAO dao = new ProductoDAO();
+                                        boolean eliminado = dao.eliminar(id);
+
+                                        String response;
+                                        if (eliminado) {
+                                                response = "{\"message\": \"Producto eliminado\"}";
+                                                exchange.sendResponseHeaders(200, response.getBytes().length);
+                                        } else {
+                                                response = "{\"error\": \"Producto no encontrado\"}";
+                                                exchange.sendResponseHeaders(404, response.getBytes().length);
+                                        }
+
+                                        exchange.getResponseHeaders().add("Content-Type", "application/json");
+                                        exchange.getResponseBody().write(response.getBytes());
                                 }
+
                         } catch (Exception e) {
                                 e.printStackTrace();
                                 String error = "{\"error\": \"" + e.getMessage() + "\"}";
@@ -276,7 +305,7 @@ public class WallpaWawqi {
 
         private static void configurarCors(HttpExchange exchange) {
                 exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-                exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, PUT, POST, OPTIONS");
+                exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
                 exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
         }
 }

@@ -200,4 +200,23 @@ public class ProductoDAO {
                 }
         }
 
+        // Agregar este método a ProductoDAO.java
+
+        public boolean eliminar(long id) {
+                String sql = "DELETE FROM producto WHERE id_producto = ?";
+
+                try (
+                                Connection conn = DatabaseConnection.getConnection();
+                                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                        stmt.setLong(1, id);
+                        int filasAfectadas = stmt.executeUpdate();
+                        return filasAfectadas > 0;
+
+                } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                }
+        }
+
 }
